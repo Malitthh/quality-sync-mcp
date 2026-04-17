@@ -1,8 +1,6 @@
 # Quality Sync MCP
 
-> **Setup & Usage Guide** — Autara Quality Engineering · Version 1.0
->
-> Claude Code • Jira • QMetry • Confluence
+> **Setup & Usage Guide** — [Org] Quality Engineering · Version 1.0
 
 ---
 
@@ -14,7 +12,7 @@ It runs entirely on your local machine. No cloud hosting, no shared server, no e
 
 | Instead of... | You type... |
 | --- | --- |
-| Opening Jira, reading a ticket, testing manually, writing a comment | `/retest AUT-108` |
+| Opening Jira, reading a ticket, testing manually, writing a comment | `/retest ORG-108` |
 | Pasting 30 TC keys into a prompt to create a test cycle | `/test-cycle create cycle Bookings Module regression` |
 | Manually creating a Confluence report after each sprint | `/confluence test report Merchant Platform Sprint 12` |
 | Switching to Jira to check what's in the current sprint | `/board show sprint` |
@@ -47,8 +45,8 @@ Every team member clones the same repo. Your personal credentials are added loca
 
 ```powershell
 # Create your workspace folder
-mkdir D:\qa-automation
-cd D:\qa-automation
+mkdir D:\quality-sync-mcp
+cd D:\quality-sync-mcp
 
 # Clone the repo
 git clone https://github.com/malitthh/quality-sync-mcp.git .
@@ -84,14 +82,14 @@ ls dist
 This is a second MCP server specifically for QMetry test case management. It runs alongside the main server.
 
 ```powershell
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 git clone https://github.com/albertor03/jira-qmetry-mcp.git
 cd jira-qmetry-mcp
 npm install
 npm run build
 
 # Create the config file (replace with your real QMetry API key)
-'{"baseUrl":"https://augmarateam.atlassian.net","apiKey":"YOUR_QMETRY_KEY"}' | Out-File -FilePath "dist\config.json" -Encoding ascii -NoNewline
+'{"baseUrl":"https://org.atlassian.net","apiKey":"YOUR_QMETRY_KEY"}' | Out-File -FilePath "dist\config.json" -Encoding ascii -NoNewline
 
 # Verify it looks clean
 cat dist\config.json
@@ -113,20 +111,12 @@ Find the line that says `"mcpServers": {}` and replace it with the block below. 
 "mcpServers": {
   "autara-qa": {
     "command": "node",
-    "args": ["D:\\qa-automation\\mcp-server\\dist\\index.js"],
+    "args": ["D:/Learning/Source/Repos/quality-sync-mcp/mcp-server/dist/index.js"],
     "env": {
-      "JIRA_BASE_URL": "https://augmarateam.atlassian.net",
-      "JIRA_EMAIL": "your-work-email@augmara.com",
+      "JIRA_BASE_URL": "https://org.atlassian.net",
+      "JIRA_EMAIL": "your-work-email@org.com",
       "JIRA_API_TOKEN": "YOUR_JIRA_API_TOKEN",
-      "QMETRY_BASE_URL": "https://augmarateam.atlassian.net",
-      "QMETRY_API_KEY": "YOUR_QMETRY_API_KEY"
-    }
-  },
-  "qmetry": {
-    "command": "node",
-    "args": ["D:\\qa-automation\\jira-qmetry-mcp\\dist\\main.js"],
-    "env": {
-      "QMETRY_BASE_URL": "https://augmarateam.atlassian.net",
+      "QMETRY_BASE_URL": "https://org.atlassian.net",
       "QMETRY_API_KEY": "YOUR_QMETRY_API_KEY"
     }
   }
@@ -149,7 +139,7 @@ Get-Content C:\Users\YourWindowsUsername\.claude.json | python -c "import sys,js
 
 ```powershell
 # Open the template
-notepad D:\qa-automation\CLAUDE.md
+notepad D:\quality-sync-mcp\CLAUDE.md
 
 # If it does not exist yet, run /init inside Claude Code first,
 # then add the QA context section shown below.
@@ -161,26 +151,26 @@ Add this section to the bottom of your `CLAUDE.md`, replacing all bracketed valu
 ## My Details
 Name: [Your Full Name]
 Role: SDET
-Jira email: [your-work-email@augmara.com]
+Jira email: [your-work-email@org.com]
 
 ## QA Environment
-QA URL: https://[qa-url].augmara.com
-Staging URL: https://[staging-url].augmara.com
+Admin Platform QA URL: https://[qa-url].org.com
+Merchant Platform QA URL: https://[qa-url].org.com
 
 ## Test Accounts
 Admin:
-  email: [admin-test@augmara.com]
+  email: [admin-test@org.com]
   password: [password]
 Merchant:
-  email: [merchant-test@augmara.com]
+  email: [merchant-test@org.com]
   password: [password]
 Customer:
-  email: [customer-test@augmara.com]
+  email: [customer-test@org.com]
   password: [password]
 
 ## QMetry
-Project key: AUT
-Confluence space key: AUTARA
+Project key: ORG
+Confluence space key: ORG
 Folder structure:
   - Admin Platform/Authentication & Login
   - Admin Platform/Dashboard Module
@@ -202,22 +192,22 @@ Medium:   Feature partially working, workaround exists
 Low:      UI inconsistency, minor label or spacing issue
 
 ## Business Context
-Platform:  Autara - service booking marketplace
-User types: Admin, Merchant, Customer
-Payments:  Stripe Connect with KYC
-Mobile:    Flutter 3 apps (Merchant + Customer)
-Backend:   AWS AppSync GraphQL, Lambda, Cognito (3 user pools)
+Platform:    ORG - Description
+User Types:  Description
+Payments:    Description
+Mobile:      Description
+Backend:     Description
 ```
 
 ---
 
 ## Step 6 — Enable Chrome Integration
 
-Chrome integration lets Claude Code browse your live QA app to observe real flows and generate accurate test cases. Without it, Claude can only work from what you describe in prompts.
+Chrome integration lets Claude Code browse your live QA platform to observe real flows and generate accurate test cases. Without it, Claude can only work from what you describe in prompts.
 
 ```powershell
 # Start Claude Code from your project folder
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 claude
 ```
 
@@ -248,7 +238,7 @@ Enabled by default: Yes
 ## Step 7 — Verify Everything Is Connected
 
 ```powershell
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 claude
 ```
 
@@ -257,7 +247,7 @@ Inside Claude Code:
 ```
 # Check MCP servers
 /mcp
-# Expected: autara-qa  connected
+# Expected: org-qa     connected
 #           qmetry     connected
 
 # Check Chrome
@@ -265,7 +255,7 @@ Inside Claude Code:
 # Expected: Status: Enabled | Extension: Connected
 ```
 
-Then test that `CLAUDE.md` is being read — ask Claude: *"What is our QMetry project key?"* It should answer **AUT** without you typing it.
+Then test that `CLAUDE.md` is being read — ask Claude: *"What is our QMetry project key?"* It should answer **ORG** without you typing it.
 
 ---
 
@@ -274,7 +264,7 @@ Then test that `CLAUDE.md` is being read — ask Claude: *"What is our QMetry pr
 Always start Claude Code from your project folder. The slash commands only work when launched from this location.
 
 ```powershell
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 claude
 ```
 
@@ -284,10 +274,10 @@ Reads the ticket, tests the fix in Chrome, posts a structured comment (PASS/FAIL
 
 ```
 # Retest a single ticket
-/retest AUT-108
+/retest ORG-108
 
 # Retest multiple tickets in one run
-/retest AUT-108,AUT-109,AUT-110
+/retest ORG-108,ORG-109,ORG-110
 ```
 
 ### Generating Test Cases
@@ -301,10 +291,10 @@ Generate TCs directly into QMetry — either by exploring the live app or from a
 /generate-tcs Merchants Platform
 
 # Generate TCs from a Jira ticket's acceptance criteria
-/generate-tcs AUT-115
+/generate-tcs ORG-115
 
 # Both — read the ticket AND explore the live app
-/generate-tcs AUT-115 Bookings
+/generate-tcs ORG-115 Bookings
 ```
 
 ### Test Cycles
@@ -316,14 +306,14 @@ Generate TCs directly into QMetry — either by exploring the live app or from a
 /test-cycle create cycle Merchants Platform E2E
 
 # Create a cycle with specific TCs only
-/test-cycle create cycle Bookings smoke AUT-TC-84,AUT-TC-85,AUT-TC-86
+/test-cycle create cycle Bookings smoke ORG-TC-84,ORG-TC-85,ORG-TC-86
 
 # Create a test plan
 /test-cycle create plan Admin Platform Sprint 12
 
 # Get execution results for a cycle
-/test-cycle results AUT-TR-1
-/test-cycle report AUT-TR-1
+/test-cycle results ORG-TR-1
+/test-cycle report ORG-TR-1
 ```
 
 ### Jira Board Management
@@ -338,11 +328,11 @@ Generate TCs directly into QMetry — either by exploring the live app or from a
 /board show critical bugs
 
 # Filter by person
-/board show Malith's tickets
+/board show Person's tickets
 
 # Update ticket status
-/board move AUT-108 to done
-/board move AUT-108,AUT-109 to in progress
+/board move ORG-108 to done
+/board move ORG-108,AUT-109 to in progress
 
 # Search by module or label
 /board show bookings tickets
@@ -405,7 +395,7 @@ Claude knows your exact Confluence structure and routes pages automatically:
 | `mcpServers` not showing in `/mcp` | Block must be at the **top level** of `.claude.json` — not inside a `projects` section |
 | `autara-qa: failed` in `/mcp` | Check double backslashes in the path. Run the JSON validation command. |
 | `qmetry: failed` in `/mcp` | Verify `config.json` exists in `jira-qmetry-mcp/dist/` with no BOM |
-| `Unknown command: /project:retest` | You must launch `claude` from the `D:\qa-automation` folder |
+| `Unknown command: /project:retest` | You must launch `claude` from the `D:\quality-sync-mcp` folder |
 | Chrome extension: not connected | Click the Claude icon in the Chrome toolbar and sign in with your account |
 | TCs generated from guesses | Chrome not active — restart with `claude --chrome` |
 | `CLAUDE.md` changes not picked up | Exit and restart Claude Code from the project folder |
@@ -423,7 +413,7 @@ Follow these rules to protect team credentials and account access.
 - Never commit credentials to Git — `CLAUDE.md` and `config.json` are gitignored.
 - Revoke and regenerate Jira API tokens at <https://id.atlassian.com> if accidentally exposed.
 - Always deny Claude Code requests to access Windows system folders (`System32`, etc.).
-- Always launch Claude Code from `D:\qa-automation` — never from the `C:\` root.
+- Always launch Claude Code from `D:\quality-sync-mcp` — never from the `C:\` root.
 
 ---
 
@@ -432,14 +422,14 @@ Follow these rules to protect team credentials and account access.
 When the repo gets updated with new tools or command improvements, run this to rebuild:
 
 ```powershell
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 git pull
 cd mcp-server
 npm install
 npm run build
 
 # Restart Claude Code
-cd D:\qa-automation
+cd D:\quality-sync-mcp
 claude
 ```
 
@@ -447,4 +437,4 @@ claude
 
 ---
 
-<sub>Autara Quality Engineering · Compiled for internal reference · Setup Guide v1.0</sub>
+<sub>[ORG] Quality Engineering · Compiled for internal reference · Setup Guide v1.0</sub>
