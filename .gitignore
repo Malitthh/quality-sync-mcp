@@ -13,6 +13,6 @@ jira-qmetry-mcp/node_modules/
 mcp-server/dist/
 jira-qmetry-mcp/dist/
 
-# OS
-.DS_Store
-Thumbs.db
+# Prompts
+.claude\commands
+
