@@ -1,0 +1,18 @@
+# Credentials
+CLAUDE.md
+.env
+mcp-server/.env
+jira-qmetry-mcp/dist/config.json
+
+# Dependencies
+node_modules/
+mcp-server/node_modules/
+jira-qmetry-mcp/node_modules/
+
+# Build output
+mcp-server/dist/
+jira-qmetry-mcp/dist/
+
+# OS
+.DS_Store
+Thumbs.db

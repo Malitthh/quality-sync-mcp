@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__autara-qa__jira_get_ticket",
+      "mcp__autara-qa__jira_add_comment",
+      "mcp__autara-qa__jira_update_status",
+      "mcp__autara-qa__qmetry_get_test_cases",
+      "mcp__qmetry__get-qmetry-projects",
+      "mcp__qmetry__get-qmetry-test-case-folders",
+      "mcp__qmetry__search-qmetry-test-cases",
+      "mcp__qmetry__create-qmetry-test-cycle",
+      "mcp__qmetry__link-test-case-to-test-cycle"
+    ]
+  }
+}

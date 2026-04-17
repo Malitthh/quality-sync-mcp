@@ -164,4 +164,163 @@ export function registerQMetryTools(server: McpServer) {
       return { content: [{ type: "text", text: `${tc_key} status updated to '${status}'.` }] };
     }
   );
+
+  // ── CREATE TEST CYCLE ────────────────────────────────────────────────────
+  server.tool(
+    "qmetry_create_test_cycle",
+    "Create a test cycle in QMetry and link test cases to it. Test cases can be specified by keys or fetched from a folder.",
+    {
+      project_key: z.string().describe("Project key e.g. AUT"),
+      name: z.string().describe("Test cycle name following existing pattern e.g. '(Admin Platform) - Bookings Module – Regression'"),
+      description: z.string().optional().describe("Short description of what this cycle covers"),
+      folder_path: z.string().optional().describe("QMetry folder path to fetch all TCs from e.g. 'Admin Platform/Bookings Module'"),
+      tc_keys: z.array(z.string()).optional().describe("Specific TC keys to include e.g. ['AUT-TC-84','AUT-TC-85']"),
+      assignee_account_id: z.string().optional().describe("Jira account ID of the assignee"),
+      planned_start_date: z.string().optional().describe("Start date in YYYY-MM-DD format"),
+      planned_end_date: z.string().optional().describe("End date in YYYY-MM-DD format"),
+    },
+    async ({ project_key, name, description, folder_path, tc_keys, assignee_account_id, planned_start_date, planned_end_date }) => {
+      const client = qmetryClient();
+
+      // Step 1 — create the cycle
+      const cyclePayload: any = {
+        summary: name,
+        description: description || "",
+        projectKey: project_key,
+      };
+      if (assignee_account_id) cyclePayload.assignee = { accountId: assignee_account_id };
+      if (planned_start_date) cyclePayload.plannedStartDate = planned_start_date;
+      if (planned_end_date) cyclePayload.plannedEndDate = planned_end_date;
+
+      const cycleRes = await client.post("/testcycles", cyclePayload);
+      const cycleKey = cycleRes.data.key;
+
+      // Step 2 — collect TC keys
+      let allTcKeys: string[] = tc_keys || [];
+
+      if (folder_path && allTcKeys.length === 0) {
+        const tcRes = await client.get("/testcases", {
+          params: { projectKey: project_key, folderPath: folder_path, maxResults: 200 },
+        });
+        const fetched = (tcRes.data.data || tcRes.data || []).map((tc: any) => tc.key).filter(Boolean);
+        allTcKeys = fetched;
+      }
+
+      // Step 3 — link TCs to cycle
+      if (allTcKeys.length > 0) {
+        await client.post(`/testcycles/${cycleKey}/testcases`, {
+          testCaseKeys: allTcKeys,
+        });
+      }
+
+      return {
+        content: [{
+          type: "text",
+          text: `Test cycle created: ${cycleKey} — ${name}\nTCs linked: ${allTcKeys.length}\nKeys: ${allTcKeys.join(", ") || "none"}`,
+        }],
+      };
+    }
+  );
+
+  // ── CREATE TEST PLAN ─────────────────────────────────────────────────────
+  server.tool(
+    "qmetry_create_test_plan",
+    "Create a test plan in QMetry and link test cycles or test cases to it.",
+    {
+      project_key: z.string().describe("Project key e.g. AUT"),
+      name: z.string().describe("Test plan name e.g. '(Admin Platform) – Sprint 12 Test Plan'"),
+      description: z.string().optional().describe("What this test plan covers"),
+      cycle_keys: z.array(z.string()).optional().describe("Test cycle keys to include in this plan e.g. ['AUT-TR-1']"),
+      assignee_account_id: z.string().optional().describe("Jira account ID of the assignee"),
+      planned_start_date: z.string().optional().describe("Start date YYYY-MM-DD"),
+      planned_end_date: z.string().optional().describe("End date YYYY-MM-DD"),
+    },
+    async ({ project_key, name, description, cycle_keys, assignee_account_id, planned_start_date, planned_end_date }) => {
+      const client = qmetryClient();
+
+      const payload: any = {
+        summary: name,
+        description: description || "",
+        projectKey: project_key,
+      };
+      if (assignee_account_id) payload.assignee = { accountId: assignee_account_id };
+      if (planned_start_date) payload.plannedStartDate = planned_start_date;
+      if (planned_end_date) payload.plannedEndDate = planned_end_date;
+
+      const res = await client.post("/testplans", payload);
+      const planKey = res.data.key;
+
+      // Link cycles if provided
+      if (cycle_keys && cycle_keys.length > 0) {
+        await client.post(`/testplans/${planKey}/testcycles`, {
+          testCycleKeys: cycle_keys,
+        });
+      }
+
+      return {
+        content: [{
+          type: "text",
+          text: `Test plan created: ${planKey} — ${name}\nCycles linked: ${cycle_keys?.length || 0}`,
+        }],
+      };
+    }
+  );
+
+  // ── GET TEST CYCLE RESULTS ────────────────────────────────────────────────
+  server.tool(
+    "qmetry_get_cycle_results",
+    "Get execution results for a test cycle — pass/fail counts, TC statuses, and overall progress.",
+    {
+      cycle_key: z.string().describe("Test cycle key e.g. AUT-TR-1"),
+    },
+    async ({ cycle_key }) => {
+      const client = qmetryClient();
+
+      const res = await client.get(`/testcycles/${cycle_key}`, {
+        params: { expand: "testCaseExecutions" },
+      });
+
+      const cycle = res.data;
+      const executions = cycle.testCaseExecutions || [];
+
+      const summary = {
+        key: cycle_key,
+        name: cycle.summary,
+        status: cycle.status?.name,
+        total: executions.length,
+        passed: executions.filter((e: any) => e.executionStatus?.name === "Pass").length,
+        failed: executions.filter((e: any) => e.executionStatus?.name === "Fail").length,
+        blocked: executions.filter((e: any) => e.executionStatus?.name === "Blocked").length,
+        not_executed: executions.filter((e: any) => !e.executionStatus || e.executionStatus?.name === "Not Executed").length,
+        executions: executions.map((e: any) => ({
+          tc_key: e.testCase?.key,
+          summary: e.testCase?.summary,
+          status: e.executionStatus?.name || "Not Executed",
+        })),
+      };
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(summary, null, 2) }],
+      };
+    }
+  );
+
+  // ── GET TEST PLAN RESULTS ─────────────────────────────────────────────────
+  server.tool(
+    "qmetry_get_plan_results",
+    "Get execution results and linked cycles for a test plan.",
+    {
+      plan_key: z.string().describe("Test plan key e.g. AUT-TP-1"),
+    },
+    async ({ plan_key }) => {
+      const client = qmetryClient();
+      const res = await client.get(`/testplans/${plan_key}`, {
+        params: { expand: "testCycles" },
+      });
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(res.data, null, 2) }],
+      };
+    }
+  );
 }
