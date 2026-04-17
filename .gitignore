@@ -14,5 +14,5 @@ mcp-server/dist/
 jira-qmetry-mcp/dist/
 
 # Prompts
-.claude\commands
+.claude/commands
 
