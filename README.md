@@ -63,7 +63,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 The MCP server is the TypeScript code that bridges Claude Code to Jira, QMetry, and Confluence. Build it once after cloning, and again whenever the repo gets updated.
 
 ```powershell
-cd D:\qa-automation\mcp-server
+cd D:\quality-sync-mcp\mcp-server
 npm install
 npm run build
 
