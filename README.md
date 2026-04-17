@@ -248,7 +248,6 @@ Inside Claude Code:
 # Check MCP servers
 /mcp
 # Expected: org-qa     connected
-#           qmetry     connected
 
 # Check Chrome
 /chrome
