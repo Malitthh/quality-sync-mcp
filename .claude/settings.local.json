@@ -9,7 +9,8 @@
       "mcp__qmetry__get-qmetry-test-case-folders",
       "mcp__qmetry__search-qmetry-test-cases",
       "mcp__qmetry__create-qmetry-test-cycle",
-      "mcp__qmetry__link-test-case-to-test-cycle"
+      "mcp__qmetry__link-test-case-to-test-cycle",
+      "mcp__autara-qa__jira_query_board"
     ]
   }
 }

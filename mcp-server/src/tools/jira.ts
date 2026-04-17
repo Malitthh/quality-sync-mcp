@@ -190,12 +190,10 @@ export function registerJiraTools(server: McpServer) {
     },
     async ({ jql, max_results }) => {
       const client = jiraClient();
-      const res = await client.get("/search", {
-        params: {
-          jql,
-          maxResults: max_results,
-          fields: "summary,status,assignee,priority,issuetype,labels",
-        },
+      const res = await client.post("/search/jql", {
+        jql,
+        maxResults: max_results,
+        fields: ["summary", "status", "assignee", "priority", "issuetype", "labels"],
       });
 
       const issues = res.data.issues.map((i: any) => ({
